@@ -22,5 +22,5 @@ cp build/base.apk build/unsigned.apk
 if [ ! -f build/test.keystore ]; then
  keytool -genkeypair -keystore build/test.keystore -alias test -keyalg RSA -keysize 2048 -validity 3650 -storepass android -keypass android -dname "CN=OneMoreCase Test,O=Development,C=DE" >/dev/null 2>&1
 fi
-"$TOOLS/apksigner" sign --ks build/test.keystore --ks-key-alias test --ks-pass pass:android --out dist/OneMoreCase-0.1.0-test.apk build/aligned.apk
-"$TOOLS/apksigner" verify --verbose dist/OneMoreCase-0.1.0-test.apk
+"$TOOLS/apksigner" sign --ks build/test.keystore --ks-key-alias test --ks-pass pass:android --out dist/OneMoreCase-0.1.1-test.apk build/aligned.apk
+"$TOOLS/apksigner" verify --verbose dist/OneMoreCase-0.1.1-test.apk

@@ -13,7 +13,7 @@ import java.util.*;
 public final class MainActivity extends Activity {
     private WebView web;
     private static final String ORIGIN = "https://appassets.androidplatform.net";
-    private static final Set<String> FILES = new HashSet<>(Arrays.asList("index.html","engine.js","app.js","style.css"));
+    private static final Set<String> FILES = new HashSet<>(Arrays.asList("index.html","engine.js","app.js","style.css","art.js"));
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
         getWindow().setStatusBarColor(0xfff7f4eb);

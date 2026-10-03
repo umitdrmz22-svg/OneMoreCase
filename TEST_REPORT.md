@@ -11,3 +11,7 @@
 - Real ads and Google Play billing are not integrated. Their settings controls are disabled and explain that this is a test build.
 
 This report records checks run, not a guarantee of defect-free operation or a store release approval.
+
+## 0.1.1 visual revision
+
+Rear-view trunk renderer and contiguous luggage silhouettes verified visually at levels 1 and 250. The same engine and browser tests passed again with the new projection. The Android allowlist includes the new renderer asset. Version code is 2; the existing test keystore is reused.

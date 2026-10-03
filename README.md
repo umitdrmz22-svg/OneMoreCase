@@ -33,7 +33,7 @@ Requirements: Java 17+, Android SDK platform 35, build-tools 35.0.0, Bash, zip, 
 ANDROID_SDK_ROOT=/your/android-sdk ./scripts/build-apk.sh
 ```
 
-If only a JRE is installed, set `ECJ_JAR` to a local Eclipse Java compiler JAR. Output: `dist/OneMoreCase-0.1.0-test.apk`. The script creates a disposable test signing key under ignored `build/`; this is not a Play production signing setup. Keep the same test key for updates to an installed test build. APK is compatible with Android 8.0+ and requires a working Android System WebView.
+If only a JRE is installed, set `ECJ_JAR` to a local Eclipse Java compiler JAR. Output: `dist/OneMoreCase-0.1.1-test.apk`. The script creates a disposable test signing key under ignored `build/`; this is not a Play production signing setup. Keep the same test key for updates to an installed test build. APK is compatible with Android 8.0+ and requires a working Android System WebView.
 
 ## Validation
 
@@ -50,6 +50,10 @@ The initial test build is offline and ad-free. Settings show ads/remove-ads/rest
 
 The current build has no INTERNET permission, analytics or advertising SDK. It stores progress and preferences locally. Adding SDKs changes privacy disclosures and the Google Play Data safety form. Add verified publisher/contact information and a public production privacy policy before store submission; no publisher identity is invented here.
 
-Android shell serves only four allowlisted packaged resources over an intercepted HTTPS origin; arbitrary files and remote navigation are blocked. File/content access is disabled and a Content Security Policy blocks connections.
+Android shell serves only five allowlisted packaged resources over an intercepted HTTPS origin; arbitrary files and remote navigation are blocked. File/content access is disabled and a Content Security Policy blocks connections.
 
 References: [Android local content guidance](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content), [Google Play advertising policy](https://support.google.com/googleplay/android-developer/answer/9857753).
+
+## 0.1.1 visual update
+
+The puzzle is now rendered inside a rear-view car with an open hatch, glass, struts, seat backs, carpeted cargo floor, tail lamps, rear sill and bumper. Cargo and tray icons use connected suitcase silhouettes with handles, ribs, zipper edges, wheels and luggage tags. Projection-based hit testing follows the perspective floor. Existing version-1 saved progress and all 250 puzzle layouts remain compatible.
