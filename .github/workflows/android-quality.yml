@@ -26,14 +26,16 @@ jobs:
         env:
           ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
           ADMOB_REWARDED_ID: ${{ secrets.ADMOB_REWARDED_ID }}
+          ADMOB_INTERSTITIAL_ID: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
         run: |
           set -euo pipefail
-          for v in ADMOB_APP_ID ADMOB_REWARDED_ID; do
+          for v in ADMOB_APP_ID ADMOB_REWARDED_ID ADMOB_INTERSTITIAL_ID; do
             test -n "${!v:-}" || { echo "Missing GitHub Actions secret: $v"; exit 1; }
           done
           [[ "$ADMOB_APP_ID" == ca-app-pub-*~* ]] || { echo "ADMOB_APP_ID format is invalid"; exit 1; }
           [[ "$ADMOB_REWARDED_ID" == ca-app-pub-*/* ]] || { echo "ADMOB_REWARDED_ID format is invalid"; exit 1; }
-          if [[ "$ADMOB_APP_ID$ADMOB_REWARDED_ID" == *3940256099942544* ]]; then
+          [[ "$ADMOB_INTERSTITIAL_ID" == ca-app-pub-*/* ]] || { echo "ADMOB_INTERSTITIAL_ID format is invalid"; exit 1; }
+          if [[ "$ADMOB_APP_ID$ADMOB_REWARDED_ID$ADMOB_INTERSTITIAL_ID" == *3940256099942544* ]]; then
             echo "Google demo AdMob IDs are not allowed for release validation"
             exit 1
           fi
@@ -65,6 +67,7 @@ jobs:
         env:
           ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
           ADMOB_REWARDED_ID: ${{ secrets.ADMOB_REWARDED_ID }}
+          ADMOB_INTERSTITIAL_ID: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
         run: gradle --no-daemon :app:lintDebug :app:lintRelease :app:assembleDebug :app:assembleRelease :app:bundleRelease
 
       - name: Verify Play target, ads and bundle
