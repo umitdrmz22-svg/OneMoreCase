@@ -1,0 +1,40 @@
+name: OneMoreCase Play Store screenshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/capture-store-screenshots.js"
+      - ".github/workflows/play-store-screenshots.yml"
+      - "web/**"
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright
+        run: npm install --no-save playwright
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Capture real app screens
+        run: node scripts/capture-store-screenshots.js
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OneMoreCase-play-store-screenshots
+          path: store-assets/screenshots/*.png
+          if-no-files-found: error
+          retention-days: 30
