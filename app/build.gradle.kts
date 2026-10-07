@@ -4,8 +4,10 @@ plugins {
 
 val sampleAdmobAppId = "ca-app-pub-3940256099942544~3347511713"
 val sampleAdmobRewardedId = "ca-app-pub-3940256099942544/5224354917"
+val sampleAdmobInterstitialId = "ca-app-pub-3940256099942544/1033173712"
 val productionAdmobAppId = System.getenv("ADMOB_APP_ID").orEmpty().trim()
 val productionAdmobRewardedId = System.getenv("ADMOB_REWARDED_ID").orEmpty().trim()
+val productionAdmobInterstitialId = System.getenv("ADMOB_INTERSTITIAL_ID").orEmpty().trim()
 val releaseKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH").orEmpty().trim()
 val releaseKeystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD").orEmpty()
 val releaseKeyAlias = System.getenv("ANDROID_KEY_ALIAS").orEmpty().trim()
@@ -18,6 +20,9 @@ if (releaseRequested) {
     }
     require(productionAdmobRewardedId.isNotBlank() && productionAdmobRewardedId != sampleAdmobRewardedId) {
         "OneMoreCase release builds require a real production rewarded AdMob unit ID."
+    }
+    require(productionAdmobInterstitialId.isNotBlank() && productionAdmobInterstitialId != sampleAdmobInterstitialId) {
+        "OneMoreCase release builds require a real production interstitial AdMob unit ID."
     }
 }
 
@@ -40,6 +45,7 @@ android {
         versionName = "0.2.0"
         manifestPlaceholders["ADMOB_APP_ID"] = sampleAdmobAppId
         buildConfigField("String", "ADMOB_REWARDED_ID", "\"$sampleAdmobRewardedId\"")
+        buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"$sampleAdmobInterstitialId\"")
     }
 
     sourceSets {
@@ -68,11 +74,13 @@ android {
             versionNameSuffix = "-debug"
             manifestPlaceholders["ADMOB_APP_ID"] = sampleAdmobAppId
             buildConfigField("String", "ADMOB_REWARDED_ID", "\"$sampleAdmobRewardedId\"")
+            buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"$sampleAdmobInterstitialId\"")
         }
         release {
             isMinifyEnabled = false
             manifestPlaceholders["ADMOB_APP_ID"] = productionAdmobAppId
             buildConfigField("String", "ADMOB_REWARDED_ID", "\"$productionAdmobRewardedId\"")
+            buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"$productionAdmobInterstitialId\"")
             if (releaseSigningReady) {
                 signingConfig = signingConfigs.getByName("release")
             }
