@@ -16,6 +16,8 @@ import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.ump.ConsentInformation;
 import com.google.android.ump.ConsentRequestParameters;
 import com.google.android.ump.UserMessagingPlatform;
@@ -24,7 +26,9 @@ import com.google.android.ump.UserMessagingPlatform;
 public final class MainActivity extends Activity {
     private WebView web;
     private RewardedAd rewardedAd;
+    private InterstitialAd interstitialAd;
     private boolean rewardedAdLoading;
+    private boolean interstitialAdLoading;
     private boolean adsInitialized;
     private ConsentInformation consentInformation;
 
@@ -99,6 +103,10 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> showRewardedHintAd());
             }
 
+            @JavascriptInterface public void showLevelInterstitial() {
+                runOnUiThread(() -> showLevelInterstitialAd());
+            }
+
             @JavascriptInterface public boolean privacyOptionsRequired() {
                 return isPrivacyOptionsRequired();
             }
@@ -147,7 +155,10 @@ public final class MainActivity extends Activity {
     private void initializeAdsIfAllowed() {
         if (consentInformation == null || !consentInformation.canRequestAds() || adsInitialized) return;
         adsInitialized = true;
-        MobileAds.initialize(this, status -> runOnUiThread(this::loadRewardedAd));
+        MobileAds.initialize(this, status -> runOnUiThread(() -> {
+            loadRewardedAd();
+            loadInterstitialAd();
+        }));
     }
 
     private void loadRewardedAd() {
@@ -173,6 +184,60 @@ public final class MainActivity extends Activity {
                     rewardedAd = null;
                 }
             });
+    }
+
+    private void loadInterstitialAd() {
+        if (!adsInitialized
+            || consentInformation == null
+            || !consentInformation.canRequestAds()
+            || interstitialAd != null
+            || interstitialAdLoading) return;
+
+        interstitialAdLoading = true;
+        InterstitialAd.load(
+            this,
+            BuildConfig.ADMOB_INTERSTITIAL_ID,
+            new AdRequest.Builder().build(),
+            new InterstitialAdLoadCallback() {
+                @Override public void onAdLoaded(InterstitialAd ad) {
+                    interstitialAdLoading = false;
+                    interstitialAd = ad;
+                }
+
+                @Override public void onAdFailedToLoad(LoadAdError error) {
+                    interstitialAdLoading = false;
+                    interstitialAd = null;
+                }
+            });
+    }
+
+    private void showLevelInterstitialAd() {
+        if (consentInformation == null || !consentInformation.canRequestAds()) {
+            evaluateJs("window.interstitialFinished && window.interstitialFinished()");
+            initializeAdsIfAllowed();
+            return;
+        }
+
+        if (interstitialAd == null) {
+            loadInterstitialAd();
+            evaluateJs("window.interstitialFinished && window.interstitialFinished()");
+            return;
+        }
+
+        InterstitialAd ad = interstitialAd;
+        interstitialAd = null;
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override public void onAdDismissedFullScreenContent() {
+                evaluateJs("window.interstitialFinished && window.interstitialFinished()");
+                loadInterstitialAd();
+            }
+
+            @Override public void onAdFailedToShowFullScreenContent(AdError adError) {
+                evaluateJs("window.interstitialFinished && window.interstitialFinished()");
+                loadInterstitialAd();
+            }
+        });
+        ad.show(this);
     }
 
     private void showRewardedHintAd() {
@@ -233,6 +298,7 @@ public final class MainActivity extends Activity {
                 notifyPrivacyOptionsState();
                 initializeAdsIfAllowed();
                 loadRewardedAd();
+                loadInterstitialAd();
             });
     }
 
@@ -257,6 +323,7 @@ public final class MainActivity extends Activity {
 
     @Override protected void onDestroy() {
         rewardedAd = null;
+        interstitialAd = null;
         if (web != null) web.destroy();
         super.onDestroy();
     }
