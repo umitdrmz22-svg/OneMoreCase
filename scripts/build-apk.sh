@@ -2,8 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 : "${ANDROID_SDK_ROOT:?Set ANDROID_SDK_ROOT to your Android SDK directory}"
-TOOLS="$ANDROID_SDK_ROOT/build-tools/35.0.0"
-PLATFORM="$ANDROID_SDK_ROOT/platforms/android-35/android.jar"
+TOOLS="$ANDROID_SDK_ROOT/build-tools/36.0.0"
+PLATFORM="$ANDROID_SDK_ROOT/platforms/android-36/android.jar"
 mkdir -p build/classes build/dex dist
 "$TOOLS/aapt2" compile --dir android/res -o build/resources.zip
 "$TOOLS/aapt2" link -o build/base.apk -I "$PLATFORM" --manifest android/AndroidManifest.xml -A web build/resources.zip
@@ -22,5 +22,5 @@ cp build/base.apk build/unsigned.apk
 if [ ! -f build/test.keystore ]; then
  keytool -genkeypair -keystore build/test.keystore -alias test -keyalg RSA -keysize 2048 -validity 3650 -storepass android -keypass android -dname "CN=OneMoreCase Test,O=Development,C=DE" >/dev/null 2>&1
 fi
-"$TOOLS/apksigner" sign --ks build/test.keystore --ks-key-alias test --ks-pass pass:android --out dist/OneMoreCase-0.1.1-test.apk build/aligned.apk
-"$TOOLS/apksigner" verify --verbose dist/OneMoreCase-0.1.1-test.apk
+"$TOOLS/apksigner" sign --ks build/test.keystore --ks-key-alias test --ks-pass pass:android --out dist/OneMoreCase-0.2.0-test.apk build/aligned.apk
+"$TOOLS/apksigner" verify --verbose dist/OneMoreCase-0.2.0-test.apk
