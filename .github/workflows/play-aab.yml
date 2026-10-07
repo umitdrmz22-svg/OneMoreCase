@@ -9,7 +9,7 @@ permissions:
 jobs:
   release-aab:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - uses: actions/checkout@v4
@@ -19,18 +19,25 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Validate signing secrets
+      - name: Validate release secrets
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+          ADMOB_REWARDED_ID: ${{ secrets.ADMOB_REWARDED_ID }}
         run: |
           set -euo pipefail
-          for v in             ANDROID_KEYSTORE_BASE64             ANDROID_KEYSTORE_PASSWORD             ANDROID_KEY_ALIAS             ANDROID_KEY_PASSWORD
-          do
+          for v in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD ADMOB_APP_ID ADMOB_REWARDED_ID; do
             test -n "${!v:-}" || { echo "Missing GitHub Actions secret: $v"; exit 1; }
           done
+          [[ "$ADMOB_APP_ID" == ca-app-pub-*~* ]] || { echo "ADMOB_APP_ID format is invalid"; exit 1; }
+          [[ "$ADMOB_REWARDED_ID" == ca-app-pub-*/* ]] || { echo "ADMOB_REWARDED_ID format is invalid"; exit 1; }
+          if [[ "$ADMOB_APP_ID$ADMOB_REWARDED_ID" == *3940256099942544* ]]; then
+            echo "Google demo AdMob IDs are not allowed in the Play release workflow"
+            exit 1
+          fi
 
       - uses: android-actions/setup-android@v4
 
@@ -52,21 +59,30 @@ jobs:
           set -euo pipefail
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/onemorecase-upload.jks"
           test -s "$RUNNER_TEMP/onemorecase-upload.jks"
-          keytool -list             -keystore "$RUNNER_TEMP/onemorecase-upload.jks"             -storepass "$ANDROID_KEYSTORE_PASSWORD"             -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          keytool -list -keystore "$RUNNER_TEMP/onemorecase-upload.jks" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
 
       - name: Build signed release AAB
         env:
+          ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+          ADMOB_REWARDED_ID: ${{ secrets.ADMOB_REWARDED_ID }}
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/onemorecase-upload.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: gradle --no-daemon :app:lintRelease :app:bundleRelease
+        run: gradle --no-daemon :app:lintRelease :app:assembleRelease :app:bundleRelease
 
-      - name: Verify signed AAB and checksum
+      - name: Verify signed release and checksum
         run: |
           set -euo pipefail
+          APK=app/build/outputs/apk/release/app-release.apk
           AAB=app/build/outputs/bundle/release/app-release.aab
+          test -s "$APK"
           test -s "$AAB"
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          "$AAPT" dump badging "$APK" | grep -F "targetSdkVersion:'36'"
+          "$AAPT" dump permissions "$APK" | grep -q "android.permission.INTERNET"
+          "$AAPT" dump permissions "$APK" | grep -q "android.permission.ACCESS_NETWORK_STATE"
+          ! "$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -q '3940256099942544'
           jarsigner -verify -certs "$AAB" >/dev/null
           sha256sum "$AAB" > app/build/outputs/bundle/release/app-release.aab.sha256
           ls -lh "$AAB"
