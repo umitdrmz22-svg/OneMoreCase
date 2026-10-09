@@ -10,3 +10,7 @@
 
 /* Keep undo reachable without scrolling; compact controls on phones. */
 .game-top{flex-wrap:wrap}.game-top button[data-action="undo"]{padding:10px 12px;min-height:44px;white-space:nowrap}.game-top button[data-action="settings"]{min-width:44px;padding:10px}.piece svg{object-fit:contain}@media(max-width:650px){.game-top{gap:6px}.game-top .pill{order:3;width:100%;text-align:center}.game-top button[data-action="undo"]{font-size:12px;padding:9px}.game-title{flex:1;min-width:110px}}
+
+.game-top{position:sticky;top:env(safe-area-inset-top,0px);z-index:3;background:var(--paper);padding:6px 0;border-bottom:1px solid var(--line)}
+#drag-preview{position:fixed;z-index:8;pointer-events:none;transform:translate(-50%,-100%);filter:drop-shadow(0 5px 5px #17303d40)}
+#drag-preview[hidden]{display:none}#drag-preview svg{width:100%;height:100%;display:block}

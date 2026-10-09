@@ -2,6 +2,13 @@ name: OneMoreCase Android quality
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "tests/**"
+      - "app/build.gradle.kts"
+      - ".github/workflows/android-quality.yml"
 
 permissions:
   contents: read

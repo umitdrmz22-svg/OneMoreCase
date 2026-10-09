@@ -41,8 +41,8 @@ android {
         applicationId = "com.defidev.onemorecase"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.2.0"
+        versionCode = 4
+        versionName = "0.2.1"
         manifestPlaceholders["ADMOB_APP_ID"] = sampleAdmobAppId
         buildConfigField("String", "ADMOB_REWARDED_ID", "\"$sampleAdmobRewardedId\"")
         buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"$sampleAdmobInterstitialId\"")

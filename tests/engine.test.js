@@ -1,10 +1,15 @@
 const assert=require('node:assert/strict'),E=require('../web/engine');
+require('../web/art');const A=globalThis.OMCArt;
 const fingerprints=new Set();let maxPieces=0;
 for(let n=1;n<=250;n++){
  let l=E.level(n),p={};assert.deepEqual(l,E.level(n));let finger=JSON.stringify([l.w,l.h,l.blocked,l.pieces]);assert(!fingerprints.has(finger),'duplicate '+n);fingerprints.add(finger);
  for(let a of l.solution){assert(E.check(l,p,a.id,a).ok,`witness ${n}/${a.id}`);p[a.id]={x:a.x,y:a.y,r:a.r};}assert(E.complete(l,p));assert.equal(l.pieces.reduce((s,p)=>s+p.cells.length,0)+l.blocked.length,l.w*l.h);
  assert(!E.check(l,{},0,{x:-20,y:0,r:0}).ok);assert(!E.check(l,{},0,{x:0,y:0,r:NaN}).ok);maxPieces=Math.max(maxPieces,l.pieces.length);
- for(let piece of l.pieces)assert.deepEqual(E.rotate(piece.cells,4),E.rotate(piece.cells,0));
+ for(let piece of l.pieces){assert.deepEqual(E.rotate(piece.cells,4),E.rotate(piece.cells,0));
+ // Canvas projection reverses Y only. Tray footprints must match it for every rotation.
+ for(let r=0;r<4;r++){let world=E.cellsAt(piece,{x:0,y:0,r}),maxY=Math.max(...world.map(c=>c[1]));
+ assert.deepEqual(A.screenCells(piece,r,E.rotate),world.map(([x,y])=>[x,maxY-y]),`screen orientation ${n}/${piece.id}/${r}`);}
+ }
  let s=E.blank();E.award(s,l,l.par,0);let coins=s.coins;E.award(s,l,l.par,0);assert.equal(s.coins,coins,'replay farming');
  assert.equal(E.award(E.blank(),l,0,1),1);
 }
