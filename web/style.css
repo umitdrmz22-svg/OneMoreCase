@@ -7,3 +7,6 @@
 
 .game-title{min-width:0}.game-title h2{white-space:nowrap}.game-top>.secondary{flex-shrink:0}
 @media(max-width:650px){.game-title h2{font-size:18px}.game-top{gap:6px}.game-top>.secondary{padding:12px}.game-top>.pill{font-size:9px;padding:9px 8px}}
+
+/* Keep undo reachable without scrolling; compact controls on phones. */
+.game-top{flex-wrap:wrap}.game-top button[data-action="undo"]{padding:10px 12px;min-height:44px;white-space:nowrap}.game-top button[data-action="settings"]{min-width:44px;padding:10px}.piece svg{object-fit:contain}@media(max-width:650px){.game-top{gap:6px}.game-top .pill{order:3;width:100%;text-align:center}.game-top button[data-action="undo"]{font-size:12px;padding:9px}.game-title{flex:1;min-width:110px}}
