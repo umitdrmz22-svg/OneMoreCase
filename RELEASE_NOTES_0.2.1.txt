@@ -1,0 +1,23 @@
+<en-US>
+Improved luggage orientation and touch controls.
+• Tray pieces now match their in-game orientation
+• Dragged luggage stays visible while moving
+• Undo remains easy to reach on smaller screens
+• Stability and Android compatibility improvements
+</en-US>
+
+<de-DE>
+Ausrichtung und Touch-Steuerung des Gepäcks wurden verbessert.
+• Teile in der Ablage entsprechen jetzt ihrer Ausrichtung im Spiel
+• Gepäck bleibt beim Ziehen sichtbar
+• Rückgängig bleibt auch auf kleineren Displays gut erreichbar
+• Stabilitäts- und Android-Kompatibilitätsverbesserungen
+</de-DE>
+
+<tr-TR>
+Valiz yönleri ve dokunmatik kontroller geliştirildi.
+• Alttaki parçalar artık oyundaki yönleriyle aynı görünüyor
+• Sürüklenen valiz hareket sırasında görünür kalıyor
+• Geri alma küçük ekranlarda da kolay erişilebilir
+• Kararlılık ve Android uyumluluk iyileştirmeleri
+</tr-TR>
