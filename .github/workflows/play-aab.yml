@@ -2,10 +2,6 @@ name: OneMoreCase signed Play AAB
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/play-aab.yml"
 
 permissions:
   contents: write
