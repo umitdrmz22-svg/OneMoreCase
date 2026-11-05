@@ -68,7 +68,6 @@ public final class MainActivity extends Activity {
 
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                notifyPrivacyOptionsState();
             }
         });
 
