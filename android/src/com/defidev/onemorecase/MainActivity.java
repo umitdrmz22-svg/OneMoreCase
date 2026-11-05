@@ -9,28 +9,10 @@ import android.net.Uri;
 import java.io.*;
 import java.util.*;
 
-import com.google.android.gms.ads.AdError;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.FullScreenContentCallback;
-import com.google.android.gms.ads.LoadAdError;
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.rewarded.RewardedAd;
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
-import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
-import com.google.android.ump.ConsentInformation;
-import com.google.android.ump.ConsentRequestParameters;
-import com.google.android.ump.UserMessagingPlatform;
 
 /** Game shell with packaged web assets plus consent-gated rewarded hints. */
 public final class MainActivity extends Activity {
     private WebView web;
-    private RewardedAd rewardedAd;
-    private InterstitialAd interstitialAd;
-    private boolean rewardedAdLoading;
-    private boolean interstitialAdLoading;
-    private boolean adsInitialized;
-    private ConsentInformation consentInformation;
 
     private static final String ORIGIN = "https://appassets.androidplatform.net";
     private static final Set<String> FILES =
@@ -100,20 +82,18 @@ public final class MainActivity extends Activity {
             }
 
             @JavascriptInterface public void showRewardedHint() {
-                runOnUiThread(() -> showRewardedHintAd());
+                runOnUiThread(() -> evaluateJs("window.rewardedHintEarned && window.rewardedHintEarned()"));
             }
 
             @JavascriptInterface public void showLevelInterstitial() {
-                runOnUiThread(() -> showLevelInterstitialAd());
+                runOnUiThread(() -> evaluateJs("window.interstitialFinished && window.interstitialFinished()"));
             }
 
             @JavascriptInterface public boolean privacyOptionsRequired() {
-                return isPrivacyOptionsRequired();
+                return false;
             }
 
-            @JavascriptInterface public void showPrivacyOptions() {
-                runOnUiThread(() -> showPrivacyOptionsForm());
-            }
+            @JavascriptInterface public void showPrivacyOptions() { }
         }, "AndroidGame");
 
         web.setOnApplyWindowInsetsListener((v, insets) -> {
@@ -127,180 +107,8 @@ public final class MainActivity extends Activity {
 
         setContentView(web);
         web.loadUrl(ORIGIN + "/assets/index.html");
-        requestConsentAndInitializeAds();
     }
 
-    private void requestConsentAndInitializeAds() {
-        consentInformation = UserMessagingPlatform.getConsentInformation(this);
-        ConsentRequestParameters params = new ConsentRequestParameters.Builder().build();
-
-        consentInformation.requestConsentInfoUpdate(
-            this,
-            params,
-            () -> {
-                notifyPrivacyOptionsState();
-                UserMessagingPlatform.loadAndShowConsentFormIfRequired(
-                    this,
-                    formError -> {
-                        notifyPrivacyOptionsState();
-                        initializeAdsIfAllowed();
-                    });
-            },
-            requestConsentError -> {
-                notifyPrivacyOptionsState();
-                initializeAdsIfAllowed();
-            });
-    }
-
-    private void initializeAdsIfAllowed() {
-        if (consentInformation == null || !consentInformation.canRequestAds() || adsInitialized) return;
-        adsInitialized = true;
-        MobileAds.initialize(this, status -> runOnUiThread(() -> {
-            loadRewardedAd();
-            loadInterstitialAd();
-        }));
-    }
-
-    private void loadRewardedAd() {
-        if (!adsInitialized
-            || consentInformation == null
-            || !consentInformation.canRequestAds()
-            || rewardedAd != null
-            || rewardedAdLoading) return;
-
-        rewardedAdLoading = true;
-        RewardedAd.load(
-            this,
-            BuildConfig.ADMOB_REWARDED_ID,
-            new AdRequest.Builder().build(),
-            new RewardedAdLoadCallback() {
-                @Override public void onAdLoaded(RewardedAd ad) {
-                    rewardedAdLoading = false;
-                    rewardedAd = ad;
-                }
-
-                @Override public void onAdFailedToLoad(LoadAdError error) {
-                    rewardedAdLoading = false;
-                    rewardedAd = null;
-                }
-            });
-    }
-
-    private void loadInterstitialAd() {
-        if (!adsInitialized
-            || consentInformation == null
-            || !consentInformation.canRequestAds()
-            || interstitialAd != null
-            || interstitialAdLoading) return;
-
-        interstitialAdLoading = true;
-        InterstitialAd.load(
-            this,
-            BuildConfig.ADMOB_INTERSTITIAL_ID,
-            new AdRequest.Builder().build(),
-            new InterstitialAdLoadCallback() {
-                @Override public void onAdLoaded(InterstitialAd ad) {
-                    interstitialAdLoading = false;
-                    interstitialAd = ad;
-                }
-
-                @Override public void onAdFailedToLoad(LoadAdError error) {
-                    interstitialAdLoading = false;
-                    interstitialAd = null;
-                }
-            });
-    }
-
-    private void showLevelInterstitialAd() {
-        if (consentInformation == null || !consentInformation.canRequestAds()) {
-            evaluateJs("window.interstitialFinished && window.interstitialFinished()");
-            initializeAdsIfAllowed();
-            return;
-        }
-
-        if (interstitialAd == null) {
-            loadInterstitialAd();
-            evaluateJs("window.interstitialFinished && window.interstitialFinished()");
-            return;
-        }
-
-        InterstitialAd ad = interstitialAd;
-        interstitialAd = null;
-        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
-            @Override public void onAdDismissedFullScreenContent() {
-                evaluateJs("window.interstitialFinished && window.interstitialFinished()");
-                loadInterstitialAd();
-            }
-
-            @Override public void onAdFailedToShowFullScreenContent(AdError adError) {
-                evaluateJs("window.interstitialFinished && window.interstitialFinished()");
-                loadInterstitialAd();
-            }
-        });
-        ad.show(this);
-    }
-
-    private void showRewardedHintAd() {
-        if (consentInformation == null || !consentInformation.canRequestAds()) {
-            evaluateJs("window.rewardedHintUnavailable && window.rewardedHintUnavailable()");
-            initializeAdsIfAllowed();
-            return;
-        }
-
-        if (rewardedAd == null) {
-            loadRewardedAd();
-            evaluateJs("window.rewardedHintUnavailable && window.rewardedHintUnavailable()");
-            return;
-        }
-
-        RewardedAd ad = rewardedAd;
-        rewardedAd = null;
-        final boolean[] rewardEarned = { false };
-
-        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
-            @Override public void onAdDismissedFullScreenContent() {
-                if (!rewardEarned[0]) {
-                    evaluateJs("window.rewardedHintClosed && window.rewardedHintClosed()");
-                }
-                loadRewardedAd();
-            }
-
-            @Override public void onAdFailedToShowFullScreenContent(AdError adError) {
-                evaluateJs("window.rewardedHintUnavailable && window.rewardedHintUnavailable()");
-                loadRewardedAd();
-            }
-        });
-
-        ad.show(this, rewardItem -> {
-            rewardEarned[0] = true;
-            evaluateJs("window.rewardedHintEarned && window.rewardedHintEarned()");
-        });
-    }
-
-    private boolean isPrivacyOptionsRequired() {
-        return consentInformation != null
-            && consentInformation.getPrivacyOptionsRequirementStatus()
-                == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
-    }
-
-    private void notifyPrivacyOptionsState() {
-        if (web == null) return;
-        final boolean required = isPrivacyOptionsRequired();
-        runOnUiThread(() ->
-            evaluateJs("window.setPrivacyOptionsRequired && window.setPrivacyOptionsRequired(" +
-                (required ? "true" : "false") + ")"));
-    }
-
-    private void showPrivacyOptionsForm() {
-        UserMessagingPlatform.showPrivacyOptionsForm(
-            this,
-            formError -> {
-                notifyPrivacyOptionsState();
-                initializeAdsIfAllowed();
-                loadRewardedAd();
-                loadInterstitialAd();
-            });
-    }
 
     private void evaluateJs(String script) {
         if (web != null) web.evaluateJavascript(script, null);
@@ -322,8 +130,6 @@ public final class MainActivity extends Activity {
     }
 
     @Override protected void onDestroy() {
-        rewardedAd = null;
-        interstitialAd = null;
         if (web != null) web.destroy();
         super.onDestroy();
     }
